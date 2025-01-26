@@ -23,10 +23,16 @@ def login_user(request):
             user = authenticate(username=username, password=password)
             if user:
                 login(request, user)
-                return JsonResponse({"userName": username, "status": "Authenticated"})
-            return JsonResponse({"userName": username, "status": "Authentication Failed"})
+                return JsonResponse(
+                    {"userName": username, "status": "Authenticated"}
+                )
+            return JsonResponse(
+                {"userName": username, "status": "Authentication Failed"}
+            )
         except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON format"}, status=400)
+            return JsonResponse(
+                {"error": "Invalid JSON format"}, status=400
+            )
     return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
@@ -51,7 +57,9 @@ def registration(request):
             email = data.get('email')
 
             if User.objects.filter(username=username).exists():
-                return JsonResponse({"userName": username, "error": "Already Registered"})
+                return JsonResponse(
+                    {"userName": username, "error": "Already Registered"}
+                )
 
             user = User.objects.create_user(
                 username=username,
@@ -61,9 +69,13 @@ def registration(request):
                 email=email,
             )
             login(request, user)
-            return JsonResponse({"userName": username, "status": "Authenticated"})
+            return JsonResponse(
+                {"userName": username, "status": "Authenticated"}
+            )
         except json.JSONDecodeError:
-            return JsonResponse({"error": "Invalid JSON format"}, status=400)
+            return JsonResponse(
+                {"error": "Invalid JSON format"}, status=400
+            )
     return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
@@ -73,7 +85,10 @@ def get_cars(request):
         if not CarMake.objects.exists():
             initiate()
         car_models = CarModel.objects.select_related('car_make')
-        cars = [{"CarModel": car_model.name, "CarMake": car_model.car_make.name} for car_model in car_models]
+        cars = [
+            {"CarModel": car_model.name, "CarMake": car_model.car_make.name}
+            for car_model in car_models
+        ]
         return JsonResponse({"CarModels": cars})
     return JsonResponse({"error": "Invalid request method"}, status=405)
 
@@ -81,7 +96,11 @@ def get_cars(request):
 # Fetch dealerships
 def get_dealerships(request, state="All"):
     if request.method == 'GET':
-        endpoint = "/fetchDealers" if state == "All" else f"/fetchDealers/{state}"
+        endpoint = (
+            "/fetchDealers"
+            if state == "All"
+            else f"/fetchDealers/{state}"
+        )
         dealerships = get_request(endpoint)
         return JsonResponse({"status": 200, "dealers": dealerships})
     return JsonResponse({"error": "Invalid request method"}, status=405)
@@ -93,8 +112,12 @@ def get_dealer_reviews(request, dealer_id):
         endpoint = f"/fetchReviews/dealer/{dealer_id}"
         reviews = get_request(endpoint)
         for review_detail in reviews:
-            sentiment_response = analyze_review_sentiments(review_detail['review'])
-            review_detail['sentiment'] = sentiment_response.get('sentiment', 'unknown')
+            sentiment_response = analyze_review_sentiments(
+                review_detail['review']
+            )
+            review_detail['sentiment'] = sentiment_response.get(
+                'sentiment', 'unknown'
+            )
         return JsonResponse({"status": 200, "reviews": reviews})
     return JsonResponse({"status": 400, "message": "Bad Request"})
 
@@ -119,6 +142,8 @@ def add_review(request):
                 return JsonResponse({"status": 200})
             except Exception as e:
                 logger.error(f"Error posting review: {e}")
-                return JsonResponse({"status": 401, "message": "Error in posting review"})
+                return JsonResponse(
+                    {"status": 401, "message": "Error in posting review"}
+                )
         return JsonResponse({"error": "Invalid request method"}, status=405)
     return JsonResponse({"status": 403, "message": "Unauthorized"})
